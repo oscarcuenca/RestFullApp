@@ -11,9 +11,9 @@ if(isset($_POST['idObjeto']) && !empty($_POST['idObjeto'])){
 	$idObjeto = $_POST['idObjeto'];
 
 	//Creating sql query with where clause to get an sensor
-	$sql = "SELECT * FROM wp_humedad_temperatura WHERE idObjeto='$idObjeto'";
+	$sql = "SELECT * FROM wp_temperatura WHERE idObjeto='$idObjeto'";
 
-	if (mysqli_connect_errno()){
+	if (mysqli_connect_error()){
 		echo 'Error de Conexión: ' . mysqli_connect_error();
 		exit();
 	}
@@ -36,38 +36,35 @@ if(isset($_POST['idObjeto']) && !empty($_POST['idObjeto'])){
 		array_push($result,array(
 			"Id"=>$row['Id'],
 			"temperatura"=>$row['temperatura'],
-			"humedad"=>$row['humedad'],
 			"Insertado"=>$row['Insertado']
 		));
 	}
 
 	//Displaying the array in json format
-	$json_object = json_decode( json_encode(array('result'=>$result)) );
+    $json_object = json_decode( json_encode(array('result'=>$result)) );
+	//$json_object = json_encode(json_decode( json_encode(array('result'=>$result))) );
+
 
 	$output_result = array();
 
 	if(isset($json_object->result)){
 
-		// get min,max and average values for temprature
+		// get min,max and average values for temp
 		$temp_values = get_temp_values($json_object->result);
 
-		// get min,max and average values for humidity
-		$humidity_values = get_humidity_values($json_object->result);
-		
-		// get temprature result set with respected values
+		// get temp result set with respected values
 		$temp_result = get_temp_result_set_from_values($json_object->result,$temp_values);
-		
-		// get humidity result set with respected values
-		$humidity_result = get_humidity_result_set_from_values($json_object->result,$humidity_values);
 
 		// get latest entry
 		$latest_entry = get_latest_date_entry($json_object->result);
 
+
 		// Wrap results in an array
 		$output_result = array(
-			'temprature' => $temp_result,
-			'humidity' => $humidity_result,
+			'temperature' => $temp_result,
 			'last_entry' => $latest_entry
+
+
 		);
 	}
 
@@ -77,27 +74,28 @@ if(isset($_POST['idObjeto']) && !empty($_POST['idObjeto'])){
 
 	// Close mysql connection
 	mysqli_close($con);
-	
+
 }else{
 	echo "Operacion fallida";
 }
 
-// get min,max and average values for temprature
+// get min,max and average values for temperature
 function get_temp_values($result){
 
 	$min = -1;
 	$max = -1;
 	$avg = -1;
-	
-	// get all temprateure values
-	$tempratures = array_map(function($result_item) {
+
+	// get all pressure values
+	$temperatures = array_map(function($result_item) {
 	  return intval($result_item->temperatura);
 	}, $result);
 
-	if($tempratures){
-		$min = min($tempratures);
-		$max = max($tempratures);
-		$avg = intval(calculate_average($tempratures));
+	if($temperatures){
+		$min = min($temperatures);
+		$max = max($temperatures);
+		//$avg = calculate_average($temperatures); con decimales
+		$avg = intval(calculate_average($temperatures));
 	}
 
 	return array(
@@ -107,36 +105,15 @@ function get_temp_values($result){
 	);
 }
 
-// get min,max and average values for humidity
-function get_humidity_values($result){
-
-	$min = -1;
-	$max = -1;
-	$avg = -1;
-	
-	// get all temprateure values
-	$humidities = array_map(function($result_item) {
-	  return intval($result_item->humedad);
-	}, $result);
-
-	if($humidities){
-		$min = min($humidities);
-		$max = max($humidities);
-		$avg = intval(calculate_average($humidities));
-	}
-
-	return array(
-		'min' => $min,
-		'max' => $max,
-		'avg' => $avg
-	);
-}
-
-// get array of object of tempratuere with min/max values
+// get array of object of temperatures with min/max values
 function get_temp_result_set_from_values($array,$value){
 	$min_objs = array();
 	$max_objs = array();
-	$avg_objs = array();
+	$avg_objs = array(array('tempmedia' => $value['avg']));
+	//$avg_objs = array('avg' => array('tempmedia' => $value['avg']) );
+    //$avg_objs_string = json_encode($avg_objs);
+    //echo $json_string;
+
 	foreach ($array as $item) {
 
 		if($item->temperatura == $value['min']){
@@ -147,36 +124,10 @@ function get_temp_result_set_from_values($array,$value){
 			$max_objs[] = $item;
 		}
 
-		if($item->temperatura == $value['avg']){
-			$avg_objs[] = $item;
-		}
-	}
-
-	return array(
-		'min' => $min_objs,
-		'max' => $max_objs,
-		'avg' => $avg_objs,
-	);
-}
-
-// get array of object of humidity with min/max values
-function get_humidity_result_set_from_values($array,$value){
-	$min_objs = array();
-	$max_objs = array();
-	$avg_objs = array();
-	foreach ($array as $item) {
-
-		if($item->humedad == $value['min']){
-			$min_objs[] = $item;
-		}
-
-		if($item->humedad == $value['max']){
-			$max_objs[] = $item;
-		}
-
-		if($item->humedad == $value['avg']){
-			$avg_objs[] = $item;
-		}
+		//if($item->temperatura == $value['avg']){
+			//$avg_objs[] = $item;
+		//
+//}
 	}
 
 	return array(
@@ -192,15 +143,16 @@ function calculate_average($arr) {
     foreach ($arr as $value) {
         $total = $total + $value; // total value of array numbers
     }
-    $average = ($total/$count); // get average value
+    //$average = ($total/$count); // get average value
+    $average = (float)$total / $count;
     return $average;
 }
 
 function get_latest_date_entry($array){
 
 	$latest_date_item = null;
-	
-	// get all temprateure values
+
+	// get all temperature values
 	$date_list = array_map(function($result_item) {
 	  return $result_item->Insertado;
 	}, $array);

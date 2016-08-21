@@ -13,7 +13,7 @@ if(isset($_POST['idObjeto']) && !empty($_POST['idObjeto'])){
 $idObjeto = $_POST['idObjeto'];
 
 	//Creating sql query with where clause to get an sensor
-	$sql = "SELECT * FROM wp_humedad_temperatura WHERE idObjeto='$idObjeto'";
+	$sql = "SELECT * FROM wp_temperatura WHERE idObjeto='$idObjeto'";
 
 if (mysqli_connect_error()){
 echo 'Error de Conexión: ' . mysqli_connect_error();
@@ -38,7 +38,6 @@ exit();
 		array_push($result,array(
 			"Id"=>$row['Id'],
 			"temperatura"=>$row['temperatura'],
-			"humedad"=>$row['humedad'],
 			"Insertado"=>$row['Insertado']
 		));
 	}
@@ -47,7 +46,7 @@ exit();
 	echo json_encode(array('result'=>$result));
 
 	mysqli_close($con);
-	
+
 	}else{
 	echo "Operacion fallida";
 	}
