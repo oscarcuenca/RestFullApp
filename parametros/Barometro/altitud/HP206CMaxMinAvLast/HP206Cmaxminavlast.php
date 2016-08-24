@@ -57,7 +57,7 @@ if(isset($_POST['idObjeto']) && !empty($_POST['idObjeto'])){
 		$latest_entry = get_latest_date_entry($json_object->result);
 
 		// Wrap results in an array
-		$output_result = array(
+		$output_result_altitud = array(
 			'altitude' => $alt_result,
 			'last_entry' => $latest_entry
 		);
@@ -65,7 +65,7 @@ if(isset($_POST['idObjeto']) && !empty($_POST['idObjeto'])){
 
 	// Display final result
 	//echo json_encode($output_result);
-        echo json_encode(array('result'=>$output_result));
+        echo json_encode(array('result_altitud'=>$output_result_altitud));
 
 	// Close mysql connection
 	mysqli_close($con);
@@ -104,7 +104,8 @@ function get_alt_values($result){
 function get_alt_result_set_from_values($array,$value){
 	$min_objs = array();
 	$max_objs = array();
-	$avg_objs = $value['avg'];
+	//$avg_objs = $value['avg'];
+	$avg_objs = array(array('altmedia' => $value['avg']));
 	foreach ($array as $item) {
 
 		if($item->altitud == $value['min']){

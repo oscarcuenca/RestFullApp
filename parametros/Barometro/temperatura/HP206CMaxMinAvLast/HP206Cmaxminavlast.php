@@ -60,7 +60,7 @@ if(isset($_POST['idObjeto']) && !empty($_POST['idObjeto'])){
 
 
 		// Wrap results in an array
-		$output_result = array(
+		$output_result_temperatura = array(
 			'temperature' => $temp_result,
 			'last_entry' => $latest_entry
 
@@ -70,7 +70,7 @@ if(isset($_POST['idObjeto']) && !empty($_POST['idObjeto'])){
 
 	// Display final result
 	//echo json_encode($output_result);
-        echo json_encode(array('result'=>$output_result));
+        echo json_encode(array('result_temperatura'=>$output_result_temperatura));
 
 	// Close mysql connection
 	mysqli_close($con);
